@@ -1,34 +1,54 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
-
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
-contract Lock {
-    uint public unlockTime;
+pragma solidity ^0.8.3;
+ 
+contract Tombola {
+     
     address payable public owner;
 
-    event Withdrawal(uint amount, uint when);
+    // Dan 
+    // isAdmin modifier 
 
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
-
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
+    struct TombolaStruct {
+        string nume;
+        uint startDate;  //unix  Timestamp
+        bool isRunning; 
+        // mapping(address => bool) tickets;
+        mapping(uint => address) tickets; // 1->0x12321321 , 2 -> 0x1234
+        uint nrOfParticipants; 
+        uint price;
+        uint prize;
+        uint prizePool;
     }
 
-    function withdraw() public {
-        // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
-        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
+    TombolaStruct public tombola; 
 
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
+    constructor( ) payable {  // DAN 
+        // sa ti dai seama cum sa selectezi owner ul 
+      
+    }
+    
+    // DAN 
+    function startTombola( parametri startTime , endDate, price, prize) public isAdmin { 
+        //require(isAdmin,"You have to be the owner of this contract");
+        // check uri 
+        // tombola.isRunning == false 
+        tombola.startDate = startTime; 
 
-        emit Withdrawal(address(this).balance, block.timestamp);
+    }
 
+
+    function buyTicket() public {
+
+    }
+    
+    //Beni 
+    function finalizareTombola() public isAdmin{
+        /// oracle un nr random 
+        /// prizePool / 70 / 25 / 5
+    }
+
+
+    function withdraw() public isAdmin{
         owner.transfer(address(this).balance);
     }
 }
