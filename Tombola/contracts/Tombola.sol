@@ -12,26 +12,24 @@ contract Tombola {          /// TODO verify it on etherscan
     }
 
     struct TombolaStruct {
-        string nume;
+        string name;
         uint startTime;  //unix  Timestamp
         uint endTime;
         bool isRunning; 
         address[] tickets; //  made an array so it will be reseted when delete the struct, the mappings cant be deleted
         uint price;
-         
     }
 
     TombolaStruct public tombola; 
 
-    function getPrice() public returns(uint) {
+    function getPrice() public view returns(uint) {
         return tombola.price;
     }
-    function getPrizePool() public returns(uint){
+    function getPrizePool() public view returns(uint){
         return tombola.tickets.length * tombola.price;
     }
 
-    constructor() payable {  
-         
+    constructor(){  
         owner = payable(msg.sender);
     }
     
@@ -39,6 +37,8 @@ contract Tombola {          /// TODO verify it on etherscan
     function startTombola(string memory _name, uint _startTime , uint _endTime, uint  _ticketPrice) public isAdmin { 
         require(tombola.isRunning == false,"THere already is a tombola runnnig");
         require(block.timestamp < _endTime,"Verify again the time slots.");
+        delete tombola;  // reset the tombola to be ready for the next one
+        tombola.name = _name;
         tombola.startTime = _startTime;  
         tombola.endTime = _endTime;  
         tombola.price = _ticketPrice;
@@ -49,14 +49,13 @@ contract Tombola {          /// TODO verify it on etherscan
     function buyTicket() internal {
          //cand apasa pe buton o sa trebuiasca sa i dea allowance la adresa  contract 
         require(tombola.isRunning == true, "Tombola has to be running");
-        require(msg.value == tombola.price, "The ticket is more expensive");
+        require(msg.value == tombola.price, "Check the ticket price. Send the exact amount.");
         for(uint i = 0; i < tombola.tickets.length; ++i) {
             if(tombola.tickets[i] == msg.sender){
                 revert("You already bought 1 ticket. Ticket limit is 1.");
             }
         }
         tombola.tickets.push(msg.sender);
-
     }
 
     receive() external payable {
@@ -68,9 +67,14 @@ contract Tombola {          /// TODO verify it on etherscan
 
     function finalizareTombola() public isAdmin returns(address, address){
         //maybe add an oracle for random number 
-        require(block.timestamp > tombola.endTime , "The Tombola is still running.");
-        require(tombola.tickets.length > 2, "Not enough participants.");
+        if(tombola.tickets.length == 0) 
+        {
+            delete tombola;
+        }
+        // require(block.timestamp > tombola.endTime , "The Tombola is still running.");
         uint nrOfParticipants = tombola.tickets.length;
+        require(nrOfParticipants > 2, "Not enough participants.");
+        
         uint prizePool = tombola.price * nrOfParticipants;
 
         uint randNr = uint (keccak256(abi.encodePacked (msg.sender, block.timestamp,  nrOfParticipants))) % nrOfParticipants;
@@ -87,15 +91,15 @@ contract Tombola {          /// TODO verify it on etherscan
         uint prize2 = (prizePool / 100 ) * 25 ;  
         payable(winner2).transfer(prize2);
 
-        delete tombola;  // reset the tombola to be ready for the next one
+        tombola.isRunning = false;
+       
         
         // maybe emit an event
         emit FinalizareTombola(winner1, winner2);
         return (winner1,winner2);
 
     }
-
-
+    
     function withdraw() public isAdmin{
         require(tombola.isRunning == false, "Can't withdraw while an tombola is running");
         owner.transfer(address(this).balance);
