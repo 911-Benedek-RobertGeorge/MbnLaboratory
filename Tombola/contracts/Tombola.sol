@@ -14,7 +14,6 @@ contract Tombola {          /// TODO verify it on etherscan
     struct TombolaStruct {
         string name;
         uint startTime;  //unix  Timestamp
-        uint endTime;
         bool isRunning; 
         address[] tickets; //  made an array so it will be reseted when delete the struct, the mappings cant be deleted
         uint price;
@@ -22,25 +21,31 @@ contract Tombola {          /// TODO verify it on etherscan
 
     TombolaStruct public tombola; 
 
+    function getState() public view returns(bool) {
+        return tombola.isRunning;
+    }
+
     function getPrice() public view returns(uint) {
         return tombola.price;
     }
+
     function getPrizePool() public view returns(uint){
         return tombola.tickets.length * tombola.price;
     }
+
+
 
     constructor(){  
         owner = payable(msg.sender);
     }
     
    
-    function startTombola(string memory _name, uint _startTime , uint _endTime, uint  _ticketPrice) public isAdmin { 
+    function startTombola(string memory _name, uint _startTime, uint  _ticketPrice) public isAdmin { 
         require(tombola.isRunning == false,"THere already is a tombola runnnig");
-        require(block.timestamp < _endTime,"Verify again the time slots.");
+
         delete tombola;  // reset the tombola to be ready for the next one
         tombola.name = _name;
         tombola.startTime = _startTime;  
-        tombola.endTime = _endTime;  
         tombola.price = _ticketPrice;
         tombola.isRunning = true;
     }
@@ -70,7 +75,8 @@ contract Tombola {          /// TODO verify it on etherscan
         if(tombola.tickets.length == 0) 
         {
             delete tombola;
-        }
+        
+        }else{
         // require(block.timestamp > tombola.endTime , "The Tombola is still running.");
         uint nrOfParticipants = tombola.tickets.length;
         require(nrOfParticipants > 2, "Not enough participants.");
@@ -95,11 +101,13 @@ contract Tombola {          /// TODO verify it on etherscan
        
         
         // maybe emit an event
-        emit FinalizareTombola(winner1, winner2);
-        return (winner1,winner2);
-
+            emit FinalizareTombola(winner1, winner2);
+            return (winner1,winner2);
+        }
     }
     
+
+
     function withdraw() public isAdmin{
         require(tombola.isRunning == false, "Can't withdraw while an tombola is running");
         owner.transfer(address(this).balance);
