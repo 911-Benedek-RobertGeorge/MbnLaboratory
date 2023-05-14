@@ -1,0 +1,62 @@
+
+Explicații:
+- Contractul `XCOIN` implementează standardul ERC20 și definește moneda XCOIN. Acesta conține funcții pentru transferul de XCOIN între adrese, aprobarea unui terț să transfere XCOIN și verificarea soldului.
+- Contractul `Staking` conține o referință la contractul `XCOIN` și stochează soldurile utilizatorilor care au pus XCOIN la staking, precum și recompensele lor. Funcția `stake` permite utilizatorilor să pună XCOIN la staking, funcția `withdraw` permite utilizatorilor să retragă XCOIN-ul lor pus la staking și funcția `claim` permite utilizatorilor să își retragă recompensele acumulate. Funcția `distributeRewards` permite administratorului să distribuie recompense noi și funcția `calculateReward` calculează recompensa curentă a unui utilizator.
+
+Pentru a implementa interfața în React, vom utiliza biblioteca `web3.js` pentru a comunica cu contractele inteligente. Iată cum ar putea arăta componenta React pentru interfața utilizatorului:
+
+```jsx
+import { useState, useEffect } from "react";
+import Web3 from "web3";
+import XCOIN_ABI from "./XCOIN_ABI.json";
+import STAKING_ABI from "./STAKING_ABI.json";
+import { formatEther } from "ethers/lib/utils";
+
+const web3 = new Web3(Web3.givenProvider);
+
+const XCOIN_ADDRESS = "0x..."; // adresa contractului XCOIN
+const STAKING_ADDRESS = "0x..."; // adresa contractului de staking
+
+const XCOIN = new web3.eth.Contract(XCOIN_ABI, XCOIN_ADDRESS);
+const STAKING = new web3.eth.Contract(STAKING_ABI, STAKING_ADDRESS);
+
+function App() {
+  const [account, setAccount] = useState("");
+  const [balance, setBalance] = useState(0);
+  const [stakeAmount, setStakeAmount] = useState(0);
+  const [stakingBalance, setStakingBalance] = useState(0);
+  const [rewardBalance, setRewardBalance] = useState(0);
+
+  useEffect(() => {
+    const loadAccount = async () => {
+      const accounts = await web3.eth.getAccounts();
+      setAccount(accounts[0]);
+    };
+    loadAccount();
+  }, []);
+
+  useEffect(() => {
+    const loadBalance = async () => {
+      const balance = await XCOIN.methods.balanceOf(account).call();
+      setBalance(formatEther(balance));
+    };
+    if (account) {
+      loadBalance();
+    }
+  }, [account]);
+
+  useEffect(() => {
+    const loadStakingBalance = async () => {
+      const balance = await XCOIN.methods.balanceOf(STAKING_ADDRESS).call();
+      setStakingBalance(formatEther(balance));
+    };
+    loadStakingBalance();
+  }, []);
+
+  useEffect(() => {
+    const loadRewardBalance = async () => {
+      const reward = await STAKING.methods.calculateReward(account).call();
+      setRewardBalance(formatEther(reward));
+    };
+    if (account) {
+     
