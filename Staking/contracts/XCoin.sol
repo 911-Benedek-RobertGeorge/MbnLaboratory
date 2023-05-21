@@ -58,7 +58,7 @@ contract XCoin is IERC20 {
             return supply;
     }
 
-    function transfer(address   to, uint   tokens) public virtual override returns (bool success){
+    function transfer(address to, uint   tokens) public virtual override returns (bool success){
         require(balances[msg.sender] >= tokens);
         balances[to] += tokens;
         balances[msg.sender] -= tokens;
