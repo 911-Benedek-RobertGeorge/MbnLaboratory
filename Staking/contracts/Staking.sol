@@ -15,15 +15,34 @@ contract Staking {
     address[] public users; 
     uint public currentRewards;
     uint public totalStaked;
+    struct Loan {
+            address borrower;
+            uint256 loanAmount;
+            uint256 interestRate;
+            uint256 repaymentPeriod;
+            uint256 collateralAmount;
+            bool isActive;
+        }
 
+    mapping(address => uint256) public collateralBalances;
+    mapping(address => Loan) public loans;
 
-    
+    address public lender;
+    uint256 public totalCollateral;
+
+    uint256 public liquidationRatio; 
+
+    modifier onlyLender() {
+        require(msg.sender == lender, "Only the lender can call this function.");
+        _;
+    }
+
     constructor(address payable tokenAddress){
+        lender = msg.sender;
         xCoinContract = XCoin(tokenAddress);
     }
     
-    // make a function to verify is a new address is in users vector
-
+ 
     function stake(uint _amount) public {
         // approve (give allowance ) call from the Xcoin contract 
     require(xCoinContract.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
@@ -76,6 +95,26 @@ contract Staking {
         rewards[msg.sender] = 0;
     }
  
+    function requestLoan(uint256 _loanAmount, uint256 _interestRate, uint256 _repaymentPeriod, uint256 _collateralAmount) external {
+        // Check if borrower has enough collateral
+        require(collateralBalances[msg.sender] >= _collateralAmount, "Insufficient collateral.");
+
+        // Add loan details to loans mapping
+        loans[msg.sender] = Loan({
+            borrower: msg.sender,
+            loanAmount: _loanAmount,
+            interestRate: _interestRate,
+            repaymentPeriod: _repaymentPeriod,
+            collateralAmount: _collateralAmount,
+            isActive: true
+        });
+
+        // Lock collateral
+        collateralBalances[msg.sender] -= _collateralAmount;
+        totalCollateral += _collateralAmount;
+    }
+
+    
     function getLoan() public { 
         currentRewards = 1000;
     }
