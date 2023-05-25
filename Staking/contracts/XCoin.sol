@@ -76,7 +76,7 @@ contract XCoin is IERC20 {
     function approve(address spender, uint   tokens) public override returns (bool success){
         require(balances[msg.sender] >= tokens);
         require(tokens > 0);
-        allowed[msg.sender][spender] = tokens;
+        allowed[msg.sender][spender] += tokens;
 
         emit Approval(msg.sender, spender, tokens);
 
