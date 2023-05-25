@@ -67,13 +67,11 @@ async function buyToken(_amount) {
 }
 
 async function stake() {
-	const amount = 1000;
-	const approval = await tokenContract.approve(contractAddress, amount).send({ from: account }); // approve the spending of the contract
+	const amount = 10001;
+	const approval = await tokenContract.approve(contractAddress, amount); // approve the spending of the contract
 	console.log("APPROVAL :");
 	console.log(approval);
-	const tx = await contract.stake(amount).send({
-		from: account,
-	});
+	const tx = await contract.stake(amount);
 	tx.wait();
 	console.log(tx.receipt);
 }
