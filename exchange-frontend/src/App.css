@@ -10,6 +10,13 @@ html {
   font-family: "Oswald", sans-serif;
 }
 
+.row-flex-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
 .App {
   text-align: center;
   margin-top: 1vh;
@@ -35,6 +42,10 @@ h3 {
   font-size: 22px;
   margin: 1px;
   padding: 1px;
+}
+
+h4 {
+  color: #e7e7e7;
 }
 
 .admin-container {
@@ -124,37 +135,36 @@ h3 {
   pointer-events: none;
 }
 
-.end-lottery-btn {
-  margin-top: 15px;
-  border: solid 2px rgb(199, 43, 43);
-  color: rgb(199, 43, 43);
+.value-input::-webkit-outer-spin-button,
+.value-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.end-lottery-btn:hover {
-  background: rgb(199, 43, 43);
-  color: #1f1f1f;
-}
-
-.lottery-name-input {
-  max-width: 10vw;
+.value-input {
+  width: 4vw;
+  height: 80%;
   font-family: inherit;
-  width: 100%;
   border: 0;
   border-bottom: 2px solid #9b9b9b;
   outline: 0;
   font-size: 16px;
   color: #fff;
-  padding: 7px 5px;
+  padding: 4px 5px;
   background: transparent;
-  transition: border-color 0.2s;
-  margin-bottom: 15px;
   text-align: center;
 }
 
-.lottery-name-input:focus {
-  border-image: linear-gradient(to right, #11998e, #38ef7d);
+.value-input:focus {
+  border-image: linear-gradient(to right, #9b9b9b, #fff);
   border-image-slice: 1;
-  transition: 0.2s;
+}
+
+.withdraw-stake-input {
+  width: 3vw;
+  height: 60%;
+  font-size: 13px;
+  padding: 3px 4px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
