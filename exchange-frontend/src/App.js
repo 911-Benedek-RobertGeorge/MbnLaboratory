@@ -3,24 +3,31 @@ import React, { useState } from "react";
 import "./App.css";
 import { access } from "fs";
 const { abi } = require("./Staking.json");
+
+const { tokenABI } = require("./XCoin.json");
+
 var signer;
 var account;
+var provider;
 if (typeof window.ethereum !== "undefined" || typeof window.web3 !== "undefined") {
 	// Web3 browser user detected. You can now use the provider.
 	const accounts = await window.ethereum.enable();
 	// const curProvider = window['ethereum'] || window.web3.currentProvider
 
-	const provider = new ethers.providers.Web3Provider(window.ethereum);
+	provider = new ethers.providers.Web3Provider(window.ethereum);
 
 	console.log("accounts: ", accounts);
 	console.log("provider: ", provider);
 	account = accounts[0];
-	signer = provider.getSigner();
+	signer = provider.getSigner(account);
 }
 const contractAddress = "0x98223247A13109f37C8118Ca669C18f41c89A8d8";
+const tokenAddress = "0x1338f082E86Add5ED230AE308626997DC1c56Fe7";
 
 console.log(abi);
 const contract = new ethers.Contract(contractAddress, abi, signer);
+const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
+
 console.log(contract.address);
 
 let contractOwnerAddress = 0;
@@ -44,8 +51,27 @@ async function getSignerMoney() {
 	signerReward = 5;
 }
 
+async function buyToken(_amount) {
+	const tx = {
+		from: account,
+		to: tokenAddress,
+		value: ethers.utils.parseEther(_amount),
+	};
+	const transaction = await signer.sendTransaction(tx);
+	provider.sendTransaction(
+		tx.then((transaction) => {
+			console.log(transaction);
+			alert("send Finished");
+		})
+	);
+}
+
 async function stake() {
-	const tx = await contract.methods.stake(1111).send({
+	const amount = 1000;
+	const approval = await tokenContract.approve(contractAddress, amount).send({ from: account }); // approve the spending of the contract
+	console.log("APPROVAL :");
+	console.log(approval);
+	const tx = await contract.stake(amount).send({
 		from: account,
 	});
 	tx.wait();
@@ -78,6 +104,9 @@ function StakingContract(props) {
 				</button>
 				<button className="btn secondary-btn" onClick={() => claimRewards()}>
 					Claim rewards
+				</button>
+				<button className="btn secondary-btn" onClick={() => buyToken("0.01")}>
+					Buy XCoin
 				</button>
 			</div>
 		</div>
