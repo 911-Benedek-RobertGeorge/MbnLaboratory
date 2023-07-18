@@ -24,6 +24,7 @@ const getWeb3 = async () => {
 			return null;
 		}
 	}
+
 	// Legacy dapp browsers
 	else if (window.web3) {
 		// Use Mist/MetaMask's provider

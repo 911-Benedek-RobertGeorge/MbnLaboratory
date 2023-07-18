@@ -35,6 +35,7 @@ const BuyTicket = () => {
 				value: 1000000000000000,
 				gas: 2000000,
 			});
+
 			console.log(tx);
 			setSuccess(true);
 		} catch (e) {

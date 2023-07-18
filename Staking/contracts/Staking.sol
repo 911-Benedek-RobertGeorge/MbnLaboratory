@@ -89,17 +89,17 @@ contract Staking {
 
     function withdrawStake(uint _amount) public{
         require(staked[msg.sender] >= _amount, "You have less staked.");
-          
-        xCoinContract.transfer(msg.sender,_amount);
         staked[msg.sender] -= _amount;
-        totalStaked -= _amount;
+        totalStaked -= _amount;  
+        xCoinContract.transfer(msg.sender,_amount);
+       
     }
      
     function claim() public{
         require(rewards[msg.sender] > 0);
-         
-        xCoinContract.transfer(msg.sender,rewards[msg.sender]);
         rewards[msg.sender] = 0;
+        xCoinContract.transfer(msg.sender,rewards[msg.sender]);
+        
     }
     
     function addCollateral() payable public {
@@ -124,6 +124,10 @@ contract Staking {
         uint collateralAmountRequired = (_loanAmount + interest) * xCoinContract.tokenPrice(); // get value in eth
         require(collateralBalancesETH[msg.sender] >=  collateralAmountRequired, "Insufficient collateral.");
         
+        // Lock collateral
+        collateralBalancesETH[msg.sender] -= collateralAmountRequired;
+        totalCollateral += collateralAmountRequired;
+
         require(xCoinContract.transfer(msg.sender,_loanAmount)); //send Xcoin to the user
 
         loans[msg.sender] = Loan({
@@ -134,11 +138,7 @@ contract Staking {
             collateralAmount: collateralAmountRequired,
             isActive: true
         });
-        
-
-        // Lock collateral
-        collateralBalancesETH[msg.sender] -= collateralAmountRequired;
-        totalCollateral += collateralAmountRequired;
+    
     }
 
     function repayLoan() public { 
@@ -151,10 +151,13 @@ contract Staking {
         if(loan.repaymentPeriod > block.timestamp){
             interest = interest * 2; // for delay of payment 
         }
-        // give allowance first 
-        require(xCoinContract.transferFrom(msg.sender, address(this), loan.loanAmount + interest), "Failed Transfer");
+
         collateralBalancesETH[msg.sender] += loan.collateralAmount; // relase collateral
         totalCollateral -= loan.collateralAmount;
+
+        // give allowance first 
+        require(xCoinContract.transferFrom(msg.sender, address(this), loan.loanAmount + interest), "Failed Transfer");
+     
     }
     
     function liquidate() public {
